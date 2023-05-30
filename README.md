@@ -47,7 +47,7 @@ Run 'get_map. py' to obtain the evaluation results, which will be saved in 'map_
 
 
 ##ACTIVE Network structure
-The corresponding relationships of the eight ACTIVE networks are as follows:   ACTIVE-I~ACTIVE--VIII       \net\active1~active8
+The corresponding relationships of the eight ACTIVE networks are as follows:   “ACTIVE-I~ACTIVE--VIII”       “\net\active1~active8”
 
 ## Reference
 https://github.com/qqwweee/keras-yolo3  
