@@ -18,45 +18,44 @@ if __name__ == "__main__":
     #-------------------------------#
     #   是否使用Cuda
     #   没有GPU可以设置成False
+        #   Whether to use Cuda
+        #   No GPU can be set to False
     #-------------------------------#
     Cuda = True
     #--------------------------------------------------------#
     #   训练前一定要修改classes_path，使其对应自己的数据集
+    #   Before training, be sure to modify the classes_path to correspond to your own dataset
     #--------------------------------------------------------#
     classes_path    = 'model_data/new_class.txt'
     #---------------------------------------------------------------------#
     #   anchors_path代表先验框对应的txt文件，一般不修改。
     #   anchors_mask用于帮助代码找到对应的先验框，一般不修改。
+        #   anchors_ Path represents the txt file corresponding to the prior box and is generally not modified
+        #   anchors_ Mask is used to help code find the corresponding prior box and is generally not modified.
     #---------------------------------------------------------------------#
     anchors_path    = 'model_data/yolo_anchors.txt'
     anchors_mask    = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
     #----------------------------------------------------------------------------------------------------------------------------#
-    #   权值文件请看README，百度网盘下载。数据的预训练权重对不同数据集是通用的，因为特征是通用的。
-    #   预训练权重对于99%的情况都必须要用，不用的话权值太过随机，特征提取效果不明显，网络训练的结果也不会好。
-    #
-    #   如果想要断点续练就将model_path设置成logs文件夹下已经训练的权值文件。 
-    #   当model_path = ''的时候不加载整个模型的权值。
-    #
-    #   此处使用的是整个模型的权重，因此是在train.py进行加载的，下面的pretrain不影响此处的权值加载。
-    #   如果想要让模型从主干的预训练权值开始训练，则设置model_path = ''，下面的pretrain = True，此时仅加载主干。
-    #   如果想要让模型从0开始训练，则设置model_path = ''，下面的pretrain = Fasle，Freeze_Train = Fasle，此时从0开始训练，且没有冻结主干的过程。
-    #   一般来讲，从0开始训练效果会很差，因为权值太过随机，特征提取效果不明显。
+
+
+    #   如果想要让模型从0开始训练，则设置model_path = ''，下面的pretrain = Fasle，Freeze_Train = Fasle，
+    #  If you want the model to start training from 0, set the model_ Path='', pre train=Fasle, Freeze below_ Train=Fasle,
     #----------------------------------------------------------------------------------------------------------------------------#
     #model_path      = 'model_data\efficientnet-b4-6ed6700e.pth'
     model_path = ''
     #------------------------------------------------------#
     #   输入的shape大小，一定要是32的倍数
+    #   The size of the input image must be a multiple of 32.
     #------------------------------------------------------#
     input_shape     = [416, 416]
     #----------------------------------------------------#
-    #   efficientnet的版本
+    #   支路2的版本
+    #   Version of Branch 2
     #----------------------------------------------------#
-    phi             = 4 #可选0~8，根据内存
+    phi             = 4 
+    #可选0~8，根据内存
+    #Optional 0-8, depending on memory
     #----------------------------------------------------------------------------------------------------------------------------#
-    #   是否使用主干网络的预训练权重，此处使用的是主干的权重，因此是在模型构建的时候进行加载的。
-    #   如果设置了model_path，则主干的权值无需加载，pretrained的值无意义。
-    #   如果不设置model_path，pretrained = True，此时仅加载主干开始训练。
-    #   如果不设置model_path，pretrained = False，Freeze_Train = Fasle，此时从0开始训练，且没有冻结主干的过程。
     #----------------------------------------------------------------------------------------------------------------------------#
     pretrained      = False
 
@@ -64,11 +63,13 @@ if __name__ == "__main__":
     #   训练分为两个阶段，分别是冻结阶段和解冻阶段。
     #   显存不足与数据集大小无关，提示显存不足请调小batch_size。
     #   受到BatchNorm层影响，batch_size最小为2，不能为1。
+    #The training is divided into two stages, namely the freezing stage and the thawing stage.
+    #Insufficient graphics memory is not related to the size of the dataset. If there is insufficient graphics memory, please reduce the batch size_ Size.
+    #Affected by the BatchNorm layer, batch_ The minimum size is 2 and cannot be 1
     #----------------------------------------------------#
     #----------------------------------------------------#
     #   冻结阶段训练参数
-    #   此时模型的主干被冻结了，特征提取网络不发生改变
-    #   占用的显存较小，仅对网络进行微调
+    #  Freeze phase training parameters
     #----------------------------------------------------#
     Init_Epoch          = 0
     Freeze_Epoch        = 50
@@ -76,36 +77,43 @@ if __name__ == "__main__":
     Freeze_lr           = 1e-3
     #----------------------------------------------------#
     #   解冻阶段训练参数
-    #   此时模型的主干不被冻结了，特征提取网络会发生改变
-    #   占用的显存较大，网络所有的参数都会发生改变
+    #   Training parameters during thawing phase
     #----------------------------------------------------#
     UnFreeze_Epoch      = 100
     Unfreeze_batch_size = 2
     Unfreeze_lr         = 1e-4
     #------------------------------------------------------#
     #   是否进行冻结训练，默认先冻结主干训练后解冻训练。
+    #   Whether to perform freeze training on the training parameters during the thawing stage, 
+    #   the default is to freeze the main training first and then thaw the training.
     #------------------------------------------------------#
     Freeze_Train        = True
     #------------------------------------------------------#
     #   用于设置是否使用多线程读取数据
     #   开启后会加快数据读取速度，但是会占用更多内存
     #   内存较小的电脑可以设置为2或者0  
+    #Used to set whether to use multithreading to read data
+    #Enabling it will accelerate data reading speed, but it will occupy more memory
+    #Computers with smaller memory can be set to 2 or 0
     #------------------------------------------------------#
     num_workers         = 0
     #----------------------------------------------------#
     #   获得图片路径和标签
+    #   Obtain image paths and labels
     #----------------------------------------------------#
     annotation_path   = '81_101_datatxt/2007_train.txt'
 
 
     #----------------------------------------------------#
     #   获取classes和anchor
+    #   Obtain classes and anchor
     #----------------------------------------------------#
     class_names, num_classes = get_classes(classes_path)
     anchors, num_anchors     = get_anchors(anchors_path)
 
     #------------------------------------------------------#
-    #   创建yolo模型
+    #   创建ACTIVE模型
+    #   Create ACTIVE model
     #------------------------------------------------------#
     model = YoloBody(anchors_mask, num_classes, phi=phi, load_weights=pretrained)
     print(model)
@@ -116,7 +124,7 @@ if __name__ == "__main__":
         weights_init(model)
     if model_path != '':
         #------------------------------------------------------#
-        #   权值文件请看README，百度网盘下载
+  
         #------------------------------------------------------#
         print('Load weights {}.'.format(model_path))
         device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -141,6 +149,7 @@ if __name__ == "__main__":
 
     #---------------------------#
     #   读取数据集对应的txt
+    #   Read the txt corresponding to the dataset
     #---------------------------#
     val_split = 0.2
     with open(annotation_path) as f:
@@ -158,6 +167,12 @@ if __name__ == "__main__":
     #   Freeze_Epoch为冻结训练的世代
     #   UnFreeze_Epoch总训练世代
     #   提示OOM或者显存不足请调小Batch_size
+    #The backbone feature extraction network features are universal, and frozen training can accelerate training speed
+    #It can also prevent weight damage during the early stages of training.
+    #Init_ Epoch is the starting generation
+    #Freeze_ Epoch is a generation of frozen training
+    #UnFreeze_ Epoch Total Training Generation
+    #Prompt for OOM or insufficient graphics memory, please reduce the batch size_ Size
     #------------------------------------------------------#
     if True:
         batch_size  = Freeze_batch_size

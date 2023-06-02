@@ -9,6 +9,7 @@ net.eval()
 net.cuda()
 
 # x是输入图片的大小
+# X is the size of the input image
 x = torch.zeros((1,3,416,416)).cuda()
 t_all = []
 
