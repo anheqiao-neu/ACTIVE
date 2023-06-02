@@ -50,6 +50,8 @@ def conv2d(filter_in, filter_out, kernel_size):
 #------------------------------------------------------------------------#
 #   make_last_layers里面一共有七个卷积，前五个用于提取特征。
 #   后两个用于获得yolo网络的预测结果
+#   Make_ Last_ There are a total of seven convolutions in layers, with the first five used for feature extraction.
+#   The last two are used to obtain the prediction results of the ACTIVE network
 #------------------------------------------------------------------------#
 def make_last_layers(filters_list, in_filters, out_filter):
     m = nn.Sequential(
@@ -67,8 +69,6 @@ class YoloBody(nn.Module):
     def __init__(self, anchors_mask, num_classes, phi=2, load_weights = False):
         super(YoloBody, self).__init__()
         #---------------------------------------------------#   
-        #   生成darknet53的主干模型
-        #   获得三个有效特征层，他们的shape分别是：
         #   52,52,256
         #   26,26,512
         #   13,13,1024
@@ -88,7 +88,7 @@ class YoloBody(nn.Module):
         self.backbone2 = darknet53()
         out_filters2 = self.backbone2.layers_out_filters
         #------------------------------------------------------------------------#
-        #   计算yolo_head的输出通道数，对于voc数据集而言
+        #   
         #   final_out_filter0 = final_out_filter1 = final_out_filter2 = 75
         #------------------------------------------------------------------------#
         self.last_layer0            = make_last_layers([688, int(out_filters[-1]+out_filters2[-1])], out_filters[-1]+out_filters2[-1], len(anchors_mask[0]) * (num_classes + 5))
@@ -104,7 +104,7 @@ class YoloBody(nn.Module):
 
         # out_filters2 = self.backbone2.layers_out_filters
         # ------------------------------------------------------------------------#
-        #   计算yolo_head的输出通道数，对于voc数据集而言
+        #   
         #   final_out_filter0 = final_out_filter1 = final_out_filter2 = 75
         # ------------------------------------------------------------------------#
         # self.last_layer20 = make_last_layers([512, 1024], out_filters2[-1], len(anchors_mask[0]) * (num_classes + 5))
@@ -117,19 +117,19 @@ class YoloBody(nn.Module):
         # self.last_layer22_upsample = nn.Upsample(scale_factor=2, mode='nearest')
         # self.last_layer22 = make_last_layers([128, 256], out_filters2[-3] + 128, len(anchors_mask[2]) * (num_classes + 5))
     def forward(self, x):
-        #---------------------------------------------------#   
-        #   获得三个有效特征层，他们的shape分别是：
-        #   52,52,256；26,26,512；13,13,1024
+        #---------------------------------------------------#  
         #---------------------------------------------------#
         x2, x1, x0 = self.backbone(x)
         x22, x21, x20 = self.backbone2(x)
         #---------------------------------------------------#
-        #   第一个特征层
+ 
         #   out0 = (batch_size,255,13,13)
         #---------------------------------------------------#
         # 13,13,1024 -> 13,13,512 -> 13,13,1024 -> 13,13,512 -> 13,13,1024 -> 13,13,512
         x30=torch.cat([x0, x20],1)
         out0_branch = self.last_layer0[:5](x30)
+        #   第一个特征层
+        #   First feature layer
         out0        = self.last_layer0[5:](out0_branch)
 
 
@@ -141,12 +141,13 @@ class YoloBody(nn.Module):
         x31= torch.cat([x1, x21],1)
         x21_in = torch.cat([x1_in, x31], 1)
         #---------------------------------------------------#
-        #   第二个特征层
+
         #   out1 = (batch_size,255,26,26)
         #---------------------------------------------------#
         # 26,26,768 -> 26,26,256 -> 26,26,512 -> 26,26,256 -> 26,26,512 -> 26,26,256
         out1_branch = self.last_layer1[:5](x21_in)
-
+        #   第二个特征层
+        #   Second feature layer
         out1        = self.last_layer1[5:](out1_branch)
 
         # 26,26,256 -> 26,26,128 -> 52,52,128
@@ -157,20 +158,22 @@ class YoloBody(nn.Module):
         x32 = torch.cat([x2, x22], 1)
         x2_in = torch.cat([x2_in, x32], 1)
         #---------------------------------------------------#
-        #   第一个特征层
+        
         #   out3 = (batch_size,255,52,52)
         #---------------------------------------------------#
         # 52,52,384 -> 52,52,128 -> 52,52,256 -> 52,52,128 -> 52,52,256 -> 52,52,128
+        #   第三个特征层
+        #   Third feature layer
         out2 = self.last_layer2(x2_in)
 
         # # ---------------------------------------------------#
-        # #   获得三个有效特征层，他们的shape分别是：
+        # #   
         # #   52,52,256；26,26,512；13,13,1024
         # # ---------------------------------------------------#
         # x22, x21, x20 = self.backbone(x)
         #
         # # ---------------------------------------------------#
-        # #   第一个特征层
+        # #  
         # #   out0 = (batch_size,255,13,13)
         # # ---------------------------------------------------#
         # # 13,13,1024 -> 13,13,512 -> 13,13,1024 -> 13,13,512 -> 13,13,1024 -> 13,13,512
@@ -184,7 +187,7 @@ class YoloBody(nn.Module):
         # # 26,26,256 + 26,26,512 -> 26,26,768
         # x21_in = torch.cat([x21_in, x21], 1)
         # # ---------------------------------------------------#
-        # #   第二个特征层
+        # #   
         # #   out1 = (batch_size,255,26,26)
         # # ---------------------------------------------------#
         # # 26,26,768 -> 26,26,256 -> 26,26,512 -> 26,26,256 -> 26,26,512 -> 26,26,256
@@ -198,7 +201,7 @@ class YoloBody(nn.Module):
         # # 52,52,128 + 52,52,256 -> 52,52,384
         # x22_in = torch.cat([x22_in, x22], 1)
         # # ---------------------------------------------------#
-        # #   第一个特征层
+        # #   
         # #   out3 = (batch_size,255,52,52)
         # # ---------------------------------------------------#
         # # 52,52,384 -> 52,52,128 -> 52,52,256 -> 52,52,128 -> 52,52,256 -> 52,52,128
